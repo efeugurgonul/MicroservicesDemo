@@ -1,4 +1,5 @@
 ﻿using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using ProductManagementService.Domain.Entities;
@@ -12,6 +13,7 @@ namespace ProductManagementService.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize] // JWT doğrulaması gerektirir
     public class ProductController : ControllerBase
     {
         private readonly IMediator _mediator;

@@ -1,74 +1,109 @@
-using ApiGateway.Aggregators;
+// ApiGateway/Program.cs
+using ApiGateway.Middlewares;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using Ocelot.DependencyInjection;
 using Ocelot.Middleware;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Ocelot yapýlandýrma dosyasýný ekleme
-builder.Configuration.AddJsonFile("ocelot.json", optional: false, reloadOnChange: true);
-
-// Servisleri ekleyin
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-
-// Swagger'ý yapýlandýrýn
-builder.Services.AddSwaggerGen(c =>
+// JWT Authentication yapýlandýrmasý
+builder.Services.AddAuthentication(options =>
 {
-    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
     {
-        Title = "API Gateway",
-        Version = "v1",
-        Description = "API Gateway for Microservices"
-    });
-
-    // XML dokümantasyonunu ekleyin (isteðe baðlý)
-    var xmlFile = $"ApiGateway.xml";
-    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-    if (File.Exists(xmlPath))
-    {
-        c.IncludeXmlComments(xmlPath);
-    }
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(builder.Configuration["JwtSettings:Secret"])),
+        ValidateIssuer = true,
+        ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
+        ValidateAudience = true,
+        ValidAudience = builder.Configuration["JwtSettings:Audience"],
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero
+    };
 });
 
-// Aggregator'ý kaydet
-builder.Services.AddSingleton<OrganizationWithProductsAggregator>();
+// ServerManagementService için HttpClient
+builder.Services.AddHttpClient("ServerManagementAPI", client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["ServiceUrls:ServerManagementService"]);
+});
 
-// Ocelot servislerini ekleyin
-builder.Services.AddOcelot(builder.Configuration)
-    .AddSingletonDefinedAggregator<OrganizationWithProductsAggregator>();
+// Add services to the container.
+builder.Services.AddControllers();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "ApiGateway", Version = "v1" });
 
-// CORS politikasýný ekleyin
+    // JWT Authentication için Swagger
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Description = "JWT Authorization header using the Bearer scheme.",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.ApiKey,
+        Scheme = "Bearer"
+    });
+
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
+});
+
+// CORS yapýlandýrmasý
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", builder =>
+    {
         builder.AllowAnyOrigin()
                .AllowAnyMethod()
-               .AllowAnyHeader());
+               .AllowAnyHeader();
+    });
 });
+
+// Ocelot konfigürasyonu
+builder.Services.AddOcelot(builder.Configuration);
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger(c =>
-    {
-        c.RouteTemplate = "swagger/{documentName}/swagger.json";
-    });
-
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "API Gateway V1");
-        c.RoutePrefix = "swagger";
-    });
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
 app.UseCors("AllowAll");
+
+app.UseRouting();
+
+// Özel middleware'ler
+app.UseMiddleware<JwtMiddleware>();
+app.UseMiddleware<PermissionAuthorizationMiddleware>();
+
+app.UseAuthentication();
 app.UseAuthorization();
 
-// Ocelot middleware'ini ekleyin
-await app.UseOcelot();
+app.UseOcelot();
 
 app.MapControllers();
 

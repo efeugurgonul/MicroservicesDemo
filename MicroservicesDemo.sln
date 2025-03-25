@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.13.35825.156
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServerManagementService", "ServerManagentService\ServerManagementService.csproj", "{69E3003C-1165-49E8-B23F-1D587A804A45}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServerManagementService", "ServerManagementService\ServerManagementService.csproj", "{69E3003C-1165-49E8-B23F-1D587A804A45}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.Core", "Common.Core\Common.Core.csproj", "{AD4BB9E6-9AF2-413F-B70D-17B88CFB9738}"
 EndProject
