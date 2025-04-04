@@ -8,7 +8,7 @@ using ServerManagementService.Features.Auth.Commands.Register;
 namespace ServerManagementService.Features.Auth
 {
     [ApiController]
-    [Route("api/[auth]")]
+    [Route("api/auth")]
     public class AuthController : ControllerBase
     {
         private readonly IMediator _mediator;

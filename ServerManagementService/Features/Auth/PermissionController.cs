@@ -8,7 +8,7 @@ using System.Security.Claims;
 namespace ServerManagementService.Features.Auth
 {
     [ApiController]
-    [Route("api/[permissions]")]
+    [Route("api/permissions")]
     [Authorize]
     public class PermissionController : ControllerBase
     {
