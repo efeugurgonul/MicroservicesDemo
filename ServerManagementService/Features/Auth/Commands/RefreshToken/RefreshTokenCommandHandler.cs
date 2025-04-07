@@ -1,6 +1,7 @@
 ﻿using Common.Core.Auth;
 using Common.Core.CQRS.Commands;
 using Microsoft.EntityFrameworkCore;
+using ServerManagementService.Controllers;
 using ServerManagementService.Data;
 
 namespace ServerManagementService.Features.Auth.Commands.RefreshToken

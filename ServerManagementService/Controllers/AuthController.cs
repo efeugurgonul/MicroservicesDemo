@@ -5,7 +5,7 @@ using ServerManagementService.Features.Auth.Commands.Login;
 using ServerManagementService.Features.Auth.Commands.RefreshToken;
 using ServerManagementService.Features.Auth.Commands.Register;
 
-namespace ServerManagementService.Features.Auth
+namespace ServerManagementService.Controllers
 {
     [ApiController]
     [Route("api/auth")]

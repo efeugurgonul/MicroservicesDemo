@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using ServerManagementService.Services;
 using System.Security.Claims;
 
-namespace ServerManagementService.Features.Auth
+namespace ServerManagementService.Controllers
 {
     [ApiController]
     [Route("api/permissions")]

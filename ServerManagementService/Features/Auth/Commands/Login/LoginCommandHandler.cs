@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using ServerManagementService.Services;
 using ServerManagementService.Data;
 using System.Security.Authentication;
+using ServerManagementService.Controllers;
 
 namespace ServerManagementService.Features.Auth.Commands.Login
 {

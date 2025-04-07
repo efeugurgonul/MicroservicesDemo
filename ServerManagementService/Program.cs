@@ -70,8 +70,17 @@ var app = builder.Build();
 // Veri tohumlama iþlemi
 using (var scope = app.Services.CreateScope())
 {
-    var seeder = scope.ServiceProvider.GetRequiredService<PermissionDataSeeder>();
-    await seeder.SeedAsync();
+    var services = scope.ServiceProvider;
+    try
+    {
+        var seeder = services.GetRequiredService<PermissionDataSeeder>();
+        await seeder.SeedAsync();
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Veritabaný tohumlama hatasý");
+    }
 }
 
 // Configure the HTTP request pipeline.

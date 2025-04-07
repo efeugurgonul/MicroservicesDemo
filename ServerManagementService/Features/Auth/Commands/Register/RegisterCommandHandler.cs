@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using ServerManagementService.Domain.Entities;
 using ServerManagementService.Services;
 using ServerManagementService.Data;
+using ServerManagementService.Controllers;
 
 namespace ServerManagementService.Features.Auth.Commands.Register
 {

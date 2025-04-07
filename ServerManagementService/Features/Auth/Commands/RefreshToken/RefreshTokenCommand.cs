@@ -1,4 +1,5 @@
 ﻿using Common.Core.CQRS.Commands;
+using ServerManagementService.Controllers;
 
 namespace ServerManagementService.Features.Auth.Commands.RefreshToken
 {
