@@ -13,11 +13,7 @@
     {
         User,
         Organization,
-        Product,
-        License,
-        Parameter,
-        Schedule,
-        Term,
+        Product,        
         Permission
     }
 
@@ -42,27 +38,5 @@
         CreateProduct,
         UpdateProduct,
         DeleteProduct,
-
-        // License permissions
-        ViewLicenses,
-        CreateLicense,
-        UpdateLicense,
-        DeleteLicense,
-
-        // Parameter permissions
-        ViewParameters,
-        UpdateParameters,
-
-        // Schedule permissions
-        ViewSchedules,
-        CreateSchedule,
-        UpdateSchedule,
-        DeleteSchedule,
-
-        // Term permissions
-        ViewTerms,
-        CreateTerm,
-        UpdateTerm,
-        DeleteTerm
     }
 }

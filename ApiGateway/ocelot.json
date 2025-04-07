@@ -1,82 +1,7 @@
 {
   "Routes": [
-    //{
-    //  "DownstreamPathTemplate": "/api/Organization/{organizationId}",
-    //  "DownstreamScheme": "https",
-    //  "DownstreamHostAndPorts": [
-    //    {
-    //      "Host": "localhost",
-    //      "Port": 5002
-    //    }
-    //  ],
-    //  "UpstreamPathTemplate": "/api/organizations/{organizationId}",
-    //  "UpstreamHttpMethod": [ "GET" ],
-    //  "Key": "organization-data"
-    //},
-    //{
-    //  "DownstreamPathTemplate": "/api/Product?organizationId={organizationId}",
-    //  "DownstreamScheme": "https",
-    //  "DownstreamHostAndPorts": [
-    //    {
-    //      "Host": "localhost",
-    //      "Port": 5004
-    //    }
-    //  ],
-    //  "UpstreamPathTemplate": "/api/products?organizationId={organizationId}",
-    //  "UpstreamHttpMethod": [ "GET" ],
-    //  "Key": "products-data"
-    //},
-    //{
-    //  "DownstreamPathTemplate": "/api/Organization",
-    //  "DownstreamScheme": "https",
-    //  "DownstreamHostAndPorts": [
-    //    {
-    //      "Host": "localhost",
-    //      "Port": 5002
-    //    }
-    //  ],
-    //  "UpstreamPathTemplate": "/api/organizations",
-    //  "UpstreamHttpMethod": [ "GET", "POST" ]
-    //},
-    //{
-    //  "DownstreamPathTemplate": "/api/Organization/{organizationId}",
-    //  "DownstreamScheme": "https",
-    //  "DownstreamHostAndPorts": [
-    //    {
-    //      "Host": "localhost",
-    //      "Port": 5002
-    //    }
-    //  ],
-    //  "UpstreamPathTemplate": "/api/organizations/{organizationId}",
-    //  "UpstreamHttpMethod": [ "PUT", "DELETE" ]
-    //},
-    //{
-    //  "DownstreamPathTemplate": "/api/Product",
-    //  "DownstreamScheme": "https",
-    //  "DownstreamHostAndPorts": [
-    //    {
-    //      "Host": "localhost",
-    //      "Port": 5004
-    //    }
-    //  ],
-    //  "UpstreamPathTemplate": "/api/products",
-    //  "UpstreamHttpMethod": [ "GET", "POST" ]
-    //},
-    //{
-    //  "DownstreamPathTemplate": "/api/Product/{productId}",
-    //  "DownstreamScheme": "https",
-    //  "DownstreamHostAndPorts": [
-    //    {
-    //      "Host": "localhost",
-    //      "Port": 5004
-    //    }
-    //  ],
-    //  "UpstreamPathTemplate": "/api/products/{productId}",
-    //  "UpstreamHttpMethod": [ "GET", "PUT", "DELETE" ]
-    //}
-    //Organizations
     {
-      "DownstreamPathTemplate": "/api/Organization/{**everything}",
+      "DownstreamPathTemplate": "/api/Organization/{organizationId}",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
@@ -84,25 +9,12 @@
           "Port": 5002
         }
       ],
-      "UpstreamPathTemplate": "/api/organizations/{**everything}",
-      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
+      "UpstreamPathTemplate": "/api/organizations/{organizationId}",
+      "UpstreamHttpMethod": [ "GET" ],
+      "Key": "organization-data"
     },
-    //Users
     {
-      "DownstreamPathTemplate": "/api/Users/{**everything}",
-      "DownstreamScheme": "https",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 5002
-        }
-      ],
-      "UpstreamPathTemplate": "/api/users/{**everything}",
-      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
-    },
-    //Produts
-    {
-      "DownstreamPathTemplate": "/api/Product/{**everything}",
+      "DownstreamPathTemplate": "/api/Product?organizationId={organizationId}",
       "DownstreamScheme": "https",
       "DownstreamHostAndPorts": [
         {
@@ -110,9 +22,97 @@
           "Port": 5004
         }
       ],
-      "UpstreamPathTemplate": "/api/products/{**everything}",
-      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
+      "UpstreamPathTemplate": "/api/products?organizationId={organizationId}",
+      "UpstreamHttpMethod": [ "GET" ],
+      "Key": "products-data"
+    },
+    {
+      "DownstreamPathTemplate": "/api/Organization",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5002
+        }
+      ],
+      "UpstreamPathTemplate": "/api/organizations",
+      "UpstreamHttpMethod": [ "GET", "POST" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/Organization/{organizationId}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5002
+        }
+      ],
+      "UpstreamPathTemplate": "/api/organizations/{organizationId}",
+      "UpstreamHttpMethod": [ "PUT", "DELETE" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/Product",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5004
+        }
+      ],
+      "UpstreamPathTemplate": "/api/products",
+      "UpstreamHttpMethod": [ "GET", "POST" ]
+    },
+    {
+      "DownstreamPathTemplate": "/api/Product/{productId}",
+      "DownstreamScheme": "https",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5004
+        }
+      ],
+      "UpstreamPathTemplate": "/api/products/{productId}",
+      "UpstreamHttpMethod": [ "GET", "PUT", "DELETE" ]
     }
+    ////Organizations
+    //{
+    //  "DownstreamPathTemplate": "/api/Organization/{**everything}",
+    //  "DownstreamScheme": "https",
+    //  "DownstreamHostAndPorts": [
+    //    {
+    //      "Host": "localhost",
+    //      "Port": 5002
+    //    }
+    //  ],
+    //  "UpstreamPathTemplate": "/api/organizations/{**everything}",
+    //  "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
+    //},
+    ////Users
+    //{
+    //  "DownstreamPathTemplate": "/api/Users/{**everything}",
+    //  "DownstreamScheme": "https",
+    //  "DownstreamHostAndPorts": [
+    //    {
+    //      "Host": "localhost",
+    //      "Port": 5002
+    //    }
+    //  ],
+    //  "UpstreamPathTemplate": "/api/users/{**everything}",
+    //  "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
+    //},
+    ////Produts
+    //{
+    //  "DownstreamPathTemplate": "/api/Product/{**everything}",
+    //  "DownstreamScheme": "https",
+    //  "DownstreamHostAndPorts": [
+    //    {
+    //      "Host": "localhost",
+    //      "Port": 5004
+    //    }
+    //  ],
+    //  "UpstreamPathTemplate": "/api/products/{**everything}",
+    //  "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE" ]
+    //}
   ],
   "Aggregates": [
     {

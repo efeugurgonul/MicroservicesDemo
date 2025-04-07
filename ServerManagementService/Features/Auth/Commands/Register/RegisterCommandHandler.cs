@@ -5,6 +5,8 @@ using ServerManagementService.Domain.Entities;
 using ServerManagementService.Services;
 using ServerManagementService.Data;
 using ServerManagementService.Controllers;
+using System.Security.Claims;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace ServerManagementService.Features.Auth.Commands.Register
 {
@@ -63,11 +65,7 @@ namespace ServerManagementService.Features.Auth.Commands.Register
             var basicPermissions = new[]
             {
                 Permission.ViewOrganizations,
-                Permission.ViewProducts,
-                Permission.ViewLicenses,
-                Permission.ViewParameters,
-                Permission.ViewSchedules,
-                Permission.ViewTerms
+                Permission.ViewProducts
             };
 
             foreach (var permission in basicPermissions)
@@ -81,8 +79,27 @@ namespace ServerManagementService.Features.Auth.Commands.Register
 
             await _dbContext.SaveChangesAsync(cancellationToken);
 
+            // İzinleri ve organizasyonları claim'lere ekle
+            var claims = new List<Claim>
+            {
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                new Claim(JwtRegisteredClaimNames.UniqueName, user.Username),
+                new Claim("defaultOrganizationId", user.DefaultOrganizationId.ToString()),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            };
+
+            // Temel izinleri claim'lere ekle
+            foreach (var permission in basicPermissions)
+            {
+                claims.Add(new Claim("permission", permission.ToString()));
+            }
+
+            // Kullanıcının erişebildiği organizasyonu claim'e ekle
+            claims.Add(new Claim("orgAccess", request.OrganizationId.ToString()));
+
             // JWT token oluştur
-            var token = await _tokenService.GenerateTokenAsync(user.Id, user.Username, user.DefaultOrganizationId);
+            //var token = await _tokenService.GenerateTokenAsync(user.Id, user.Username, user.DefaultOrganizationId);
+            var token = await _tokenService.GenerateTokenWithClaimsAsync(claims);
 
             // Refresh token oluştur
             var refreshToken = new Domain.Entities.RefreshToken

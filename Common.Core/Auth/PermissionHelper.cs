@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -30,28 +31,6 @@ namespace Common.Core.Auth
             { Permission.CreateProduct, (ActionType.Create, ResourceType.Product) },
             { Permission.UpdateProduct, (ActionType.Update, ResourceType.Product) },
             { Permission.DeleteProduct, (ActionType.Delete, ResourceType.Product) },
-            
-            //// License permissions
-            //{ Permission.ViewLicenses, (ActionType.Read, ResourceType.License) },
-            //{ Permission.CreateLicense, (ActionType.Create, ResourceType.License) },
-            //{ Permission.UpdateLicense, (ActionType.Update, ResourceType.License) },
-            //{ Permission.DeleteLicense, (ActionType.Delete, ResourceType.License) },
-            
-            //// Parameter permissions
-            //{ Permission.ViewParameters, (ActionType.Read, ResourceType.Parameter) },
-            //{ Permission.UpdateParameters, (ActionType.Update, ResourceType.Parameter) },
-            
-            //// Schedule permissions
-            //{ Permission.ViewSchedules, (ActionType.Read, ResourceType.Schedule) },
-            //{ Permission.CreateSchedule, (ActionType.Create, ResourceType.Schedule) },
-            //{ Permission.UpdateSchedule, (ActionType.Update, ResourceType.Schedule) },
-            //{ Permission.DeleteSchedule, (ActionType.Delete, ResourceType.Schedule) },
-            
-            //// Term permissions
-            //{ Permission.ViewTerms, (ActionType.Read, ResourceType.Term) },
-            //{ Permission.CreateTerm, (ActionType.Create, ResourceType.Term) },
-            //{ Permission.UpdateTerm, (ActionType.Update, ResourceType.Term) },
-            //{ Permission.DeleteTerm, (ActionType.Delete, ResourceType.Term) }
         };
 
         // ActionType ve ResourceType'a göre Permission almak için
@@ -108,6 +87,69 @@ namespace Common.Core.Auth
             bool hasManagePermission = managePermission.HasValue && userPermissions.Contains(managePermission.Value);
 
             return hasSpecificPermission || hasManagePermission;
+        }
+
+
+        public static bool CheckPermissionFromClaims(IEnumerable<Claim> claims, ResourceType resourceType, ActionType action)
+        {
+            try
+            {
+                // Tokendan izinleri al
+                var permissions = claims
+                    .Where(c => c.Type == "permission")
+                    .Select(c => c.Value)
+                    .ToList();
+
+                // Gerekli izni belirle
+                var requiredPermission = GetPermission(action, resourceType);
+                if (requiredPermission == null)
+                    return false;
+
+                // Spesifik izni kontrol et
+                string requiredPermissionStr = requiredPermission.ToString();
+                bool hasSpecificPermission = permissions.Contains(requiredPermissionStr);
+
+                // Yönetim iznini kontrol et
+                var managePermission = GetPermission(ActionType.Manage, resourceType);
+                bool hasManagePermission = false;
+                if (managePermission.HasValue)
+                {
+                    string managePermissionStr = managePermission.Value.ToString();
+                    hasManagePermission = permissions.Contains(managePermissionStr);
+                }
+
+                return hasSpecificPermission || hasManagePermission;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        public static bool CheckOrganizationAccessFromClaims(IEnumerable<Claim> claims, int organizationId)
+        {
+            // Default organizasyonu kontrol et
+            var defaultOrgClaim = claims.FirstOrDefault(c => c.Type == "defaultOrganizationId");
+            if (defaultOrgClaim != null && int.TryParse(defaultOrgClaim.Value, out int defaultOrgId))
+            {
+                if (defaultOrgId == organizationId)
+                    return true;
+            }
+
+            // Organizasyon erişim listesini kontrol et
+            var orgAccessClaims = claims.Where(c => c.Type == "orgAccess").Select(c => c.Value);
+            foreach (var orgClaim in orgAccessClaims)
+            {
+                if (int.TryParse(orgClaim, out int orgId) && orgId == organizationId)
+                    return true;
+            }
+
+            // Admin kullanıcıları için her organizasyona erişim izni ver
+            var isAdmin = claims
+                .Where(c => c.Type == "permission")
+                .Any(c => c.Value == "ManageOrganizationUsers" || c.Value == "ManageUserPermissions");
+
+            return isAdmin;
         }
     }
 }

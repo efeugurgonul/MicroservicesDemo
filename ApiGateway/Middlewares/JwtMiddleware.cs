@@ -46,27 +46,45 @@ namespace ApiGateway.Middlewares
                 }, out SecurityToken validatedToken);
 
                 var jwtToken = (JwtSecurityToken)validatedToken;
+
                 var userId = int.Parse(jwtToken.Claims.First(x => x.Type == "sub").Value);
-                var defaultOrganizationId = int.Parse(jwtToken.Claims.First(x => x.Type == "defaultOrganizationId").Value);
+                var defaultOrgClaim = jwtToken.Claims.FirstOrDefault(x => x.Type == "defaultOrganizationId");
+                var defaultOrganizationId = defaultOrgClaim != null ? int.Parse(defaultOrgClaim.Value) : 0;
 
-                // Create a ClaimsIdentity for the user
-                var claims = new[]
+                // Tüm claim'leri ClaimsIdentity'e aktarma
+                var identity = new ClaimsIdentity(new List<Claim>(), "jwt");
+
+                // Mevcut claim'leri ekle
+                foreach (var claim in jwtToken.Claims)
                 {
-                    new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
-                    new Claim("DefaultOrganizationId", defaultOrganizationId.ToString())
-                };
+                    // Debug bilgisi
+                    Console.WriteLine($"Adding claim to identity: {claim.Type}={claim.Value}");
+                    identity.AddClaim(new Claim(claim.Type, claim.Value));
+                }
 
-                var identity = new ClaimsIdentity(claims, "jwt");
+                // Permission claim'lerinin özel bir kontrolü
+                var permissionClaims = jwtToken.Claims.Where(c => c.Type == "permission").ToList();
+                Console.WriteLine($"Found {permissionClaims.Count} permission claims in token");
+                foreach (var permClaim in permissionClaims)
+                {
+                    Console.WriteLine($"Permission claim: {permClaim.Value}");
+                }
+
+                // ClaimsPrincipal oluştur ve HttpContext.User'a ata
                 context.User = new ClaimsPrincipal(identity);
 
-                // Store valuable information in the HttpContext
+                // Kolay erişim için Items koleksiyonuna da ekle
                 context.Items["UserId"] = userId;
                 context.Items["DefaultOrganizationId"] = defaultOrganizationId;
                 context.Items["JWT"] = jwtToken;
+
+                Console.WriteLine($"Successfully attached user {userId} to context");
             }
-            catch
+            catch (Exception ex)
             {
-                // Token doğrulama hatası - kullanıcıyı kontekste ekleme
+                // Hata durumunda detaylı log
+                Console.WriteLine($"JWT Middleware Error: {ex.Message}");
+                Console.WriteLine($"Stack Trace: {ex.StackTrace}");
             }
         }
     }

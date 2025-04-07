@@ -103,7 +103,7 @@ app.UseMiddleware<PermissionAuthorizationMiddleware>();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseOcelot();
+await app.UseOcelot();
 
 app.MapControllers();
 

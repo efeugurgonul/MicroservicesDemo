@@ -12,12 +12,10 @@ namespace ApiGateway.Middlewares
     public class PermissionAuthorizationMiddleware
     {
         private readonly RequestDelegate _next;
-        private readonly IHttpClientFactory _httpClientFactory;
 
-        public PermissionAuthorizationMiddleware(RequestDelegate next, IHttpClientFactory httpClientFactory)
+        public PermissionAuthorizationMiddleware(RequestDelegate next)
         {
             _next = next;
-            _httpClientFactory = httpClientFactory;
         }
 
         public async Task InvokeAsync(HttpContext context)
@@ -30,25 +28,26 @@ namespace ApiGateway.Middlewares
                 return;
             }
 
-            // 1. Get the user ID from context (set by JwtMiddleware)
-            if (!context.Items.TryGetValue("UserId", out var userIdObj) || userIdObj == null)
+            // Check if user is authenticated
+            if (!context.User.Identity.IsAuthenticated)
             {
                 context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                await context.Response.WriteAsync("Unauthorized: Token missing or invalid");
+                await context.Response.WriteAsync("Unauthorized: Not authenticated");
                 return;
             }
 
-            var userId = (int)userIdObj;
-
-            // 2. Extract resource type and action from the request
+            // Extract resource type and action from the request
             var path = context.Request.Path.Value?.ToLower();
             var method = context.Request.Method;
 
             var resourceType = ExtractResourceTypeFromPath(path);
             var action = ConvertMethodToAction(method);
 
-            // 3. Check permission against the ServerManagementService
-            bool hasPermission = await CheckPermissionAsync(userId, resourceType, action);
+            // Get all claims
+            var claims = context.User.Claims;
+
+            // Check permission from claims
+            bool hasPermission = PermissionHelper.CheckPermissionFromClaims(claims, resourceType, action);
 
             if (!hasPermission)
             {
@@ -57,12 +56,12 @@ namespace ApiGateway.Middlewares
                 return;
             }
 
-            // 4. Check organization access (if applicable)
+            // Check organization access if needed
             int? organizationId = ExtractOrganizationIdFromRequest(context);
 
             if (organizationId.HasValue && resourceType != ResourceType.Organization)
             {
-                bool hasOrganizationAccess = await CheckOrganizationAccessAsync(userId, organizationId.Value);
+                bool hasOrganizationAccess = PermissionHelper.CheckOrganizationAccessFromClaims(claims, organizationId.Value);
 
                 if (!hasOrganizationAccess)
                 {
@@ -138,61 +137,6 @@ namespace ApiGateway.Middlewares
             }
 
             return null;
-        }
-
-        private async Task<bool> CheckPermissionAsync(int userId, ResourceType resourceType, ActionType action)
-        {
-            using var httpClient = _httpClientFactory.CreateClient("ServerManagementAPI");
-
-            var checkRequest = new PermissionCheckRequest
-            {
-                UserId = userId,
-                ResourceType = resourceType,
-                Action = action
-            };
-
-            var content = new StringContent(
-                JsonConvert.SerializeObject(checkRequest),
-                Encoding.UTF8,
-                "application/json");
-
-            var response = await httpClient.PostAsync("api/permissions/check", content);
-
-            if (response.IsSuccessStatusCode)
-            {
-                var responseContent = await response.Content.ReadAsStringAsync();
-                var result = JsonConvert.DeserializeObject<PermissionCheckResponse>(responseContent);
-                return result?.HasPermission ?? false;
-            }
-
-            return false;
-        }
-
-        private async Task<bool> CheckOrganizationAccessAsync(int userId, int organizationId)
-        {
-            using var httpClient = _httpClientFactory.CreateClient("ServerManagementAPI");
-
-            var checkRequest = new OrganizationCheckRequest
-            {
-                UserId = userId,
-                OrganizationId = organizationId
-            };
-
-            var content = new StringContent(
-                JsonConvert.SerializeObject(checkRequest),
-                Encoding.UTF8,
-                "application/json");
-
-            var response = await httpClient.PostAsync("api/organizations/check-access", content);
-
-            if (response.IsSuccessStatusCode)
-            {
-                var responseContent = await response.Content.ReadAsStringAsync();
-                var result = JsonConvert.DeserializeObject<OrganizationCheckResponse>(responseContent);
-                return result?.HasAccess ?? false;
-            }
-
-            return false;
         }
     }
 }

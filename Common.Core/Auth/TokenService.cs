@@ -12,6 +12,7 @@ namespace Common.Core.Auth
     public interface ITokenService
     {
         Task<string> GenerateTokenAsync(int userId, string username, int defaultOrganizationId);
+        Task<string> GenerateTokenWithClaimsAsync(List<Claim> claims);
         bool ValidateToken(string token, out JwtSecurityToken validatedToken);
         int GetUserIdFromToken(JwtSecurityToken token);
         int GetDefaultOrganizationIdFromToken(JwtSecurityToken token);
@@ -48,6 +49,21 @@ namespace Common.Core.Auth
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
+        public Task<string> GenerateTokenWithClaimsAsync(List<Claim> claims)
+        {
+            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtSettings:Secret"]));
+            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+
+            var token = new JwtSecurityToken(
+                issuer: _configuration["JwtSettings:Issuer"],
+                audience: _configuration["JwtSettings:Audience"],
+                claims: claims,
+                expires: DateTime.Now.AddMinutes(Convert.ToDouble(_configuration["JwtSettings:DurationInMinutes"])),
+                signingCredentials: credentials
+            );
+
+            return Task.FromResult(new JwtSecurityTokenHandler().WriteToken(token));
+        }
         public bool ValidateToken(string token, out JwtSecurityToken validatedToken)
         {
             validatedToken = null;
